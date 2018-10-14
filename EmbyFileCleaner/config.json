@@ -1,0 +1,11 @@
+{
+	"ConnectionInfo": {
+		"ApiKey": "3d3d1ac22bd941eba2698f3c09ba1f38",
+		"Endpoint": "https://neyesha.myqnapcloud.com:8920/emby",
+		"Username": "admin"
+	},
+	"IgnoreList": ["StarGate SG-1", "Dragon Prince"],
+	"IncludeItemTypes": ["Episode"],
+	"IsTest": true,
+	"RemoveOlderThanDays": 7
+}
