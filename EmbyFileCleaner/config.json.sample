@@ -1,0 +1,11 @@
+{
+	"ConnectionInfo": {
+		"ApiKey": "",
+		"Endpoint": "https://localhost:8920/emby",
+		"Username": "admin"
+	},
+	"IgnoreList": [],
+	"IncludeItemTypes": ["Episode"],
+	"IsTest": true,
+	"RemoveOlderThanDays": 7
+}
