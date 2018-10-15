@@ -50,8 +50,31 @@ namespace EmbyFileCleaner
                 }
                 else
                 {
-                    throw new NotImplementedException();
+                    if (this.TryDelete(item))
+                    {
+                        Console.WriteLine($"Successfully deleted {this.GetItemNameFormattedByType(item)}.");
+                    }
                 }
+            }
+        }
+
+        private bool TryDelete(BaseItemDto item)
+        {
+            try
+            {
+                if(item.CanDelete ?? true)
+                {
+                    this.apiClient.DeleteItemAsync(item.Id);
+                    return true;
+                }
+
+                throw new InvalidOperationException("Item marked not to be deleted.");
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine($"Could not delete {this.GetItemNameFormattedByType(item)}.");
+                Console.Write(e.Message);
+                return false;
             }
         }
 
