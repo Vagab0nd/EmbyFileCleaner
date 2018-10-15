@@ -23,8 +23,8 @@ namespace EmbyFileCleaner
 
         private static string GetAssemblyVersion()
         {
-            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             return fvi.FileVersion;
         }
 
