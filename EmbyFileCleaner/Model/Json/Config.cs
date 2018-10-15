@@ -11,9 +11,14 @@ namespace EmbyFileCleaner.Model.Json
         public int RemoveOlderThanDays { get; set; }
 
         /// <summary>
-        /// Series Names that should be ignore when deleting files
+        /// Names that contain value should be ignored when deleting files
         /// </summary>
-        public List<string> IgnoreList { get; set; }
+        public List<string> IgnoreListContains { get; set; }
+
+        /// <summary>
+        /// Names that should be ignored when deleting files
+        /// </summary>
+        public List<string> IgnoreListEquals { get; set; }
 
         /// <summary>
         /// If true run in test mode without clearing anything

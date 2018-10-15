@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using EmbyFileCleaner.Model.Json;
 using Mono.Options;
 using Newtonsoft.Json;
@@ -12,18 +13,19 @@ namespace EmbyFileCleaner
         public static void Main(string[] args)
         {
             Console.WriteLine($"Emby File Cleaner v{GetAssemblyVersion()}");
-            if (args.Length > 0 && GetConfigPath(args, out string configPath))
+            if (args.Length > 0 && GetConfigPath(args, out var configPath))
             {
                 var config = GetConfig(configPath);
                 var cleaner = new Cleaner(config);
                 cleaner.Run();
             }
+
             Console.ReadKey();
         }
 
         private static string GetAssemblyVersion()
         {
-            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var assembly = Assembly.GetExecutingAssembly();
             var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             return fvi.FileVersion;
         }
@@ -31,15 +33,15 @@ namespace EmbyFileCleaner
         private static bool GetConfigPath(string[] args, out string configPath)
         {
             string path = null;
-            bool show_help = false;
-            var p = new OptionSet() {
+            var p = new OptionSet
+            {
                 {
                     "cp|configPath=", "the {PATH} to config path.",
                     v => path = v
                 },
                 {
-                    "h|help",  "show this message and exit",
-                    v => show_help = v != null
+                    "h|help", "show this message and exit",
+                    v => { }
                 }
             };
 
@@ -60,8 +62,8 @@ namespace EmbyFileCleaner
 
         private static Config GetConfig(string configPath)
         {
-            StreamReader file = File.OpenText(configPath);
-            string configString = file.ReadToEnd();
+            var file = File.OpenText(configPath);
+            var configString = file.ReadToEnd();
             return JsonConvert.DeserializeObject<Config>(configString);
         }
     }

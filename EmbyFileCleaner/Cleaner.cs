@@ -116,7 +116,9 @@ namespace EmbyFileCleaner
 
         private bool IsNotIgnored(BaseItemDto item)
         {
-            return this.config.IgnoreList.Select(name => name.ToLower()).Contains(this.GetItemNameByType(item).ToLower()) == false;
+            var isIgnoredListContains = this.config.IgnoreListContains.Any(name => name.ToLower().Contains(this.GetItemNameByType(item).ToLower()));
+            var isIgnoredEquals = this.config.IgnoreListContains.Any(name => name == this.GetItemNameByType(item).ToLower());
+            return (isIgnoredListContains || isIgnoredEquals) == false;
         }
 
         private async Task<string> GetUserIdByUsername(string username)
@@ -127,7 +129,7 @@ namespace EmbyFileCleaner
                 IsHidden = false
             });
 
-            return users.SingleOrDefault(u => u.Name.ToLower() == username.ToLower()).Id;
+            return users.SingleOrDefault(u => u.Name.ToLower() == username.ToLower())?.Id;
         }
 
         private async Task<BaseItemDto[]> GetItems(string userId)

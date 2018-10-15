@@ -4,7 +4,8 @@
 		"Endpoint": "https://localhost:8920/emby",
 		"Username": "admin"
 	},
-	"IgnoreList": [],
+  "IgnoreListContains": [],
+  "IgnoreListEquals":  [], 
 	"IncludeItemTypes": ["Episode"],
 	"IsTest": true,
 	"RemoveOlderThanDays": 7
