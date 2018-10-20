@@ -1,26 +1,30 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using EmbyFileCleaner.Model.Json;
-using Mono.Options;
-using Newtonsoft.Json;
-
 namespace EmbyFileCleaner
 {
+    using System;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Reflection;
+    using Model.Json;
+    using Mono.Options;
+    using Newtonsoft.Json;
+
     public class Program
     {
+        private static readonly log4net.ILog Logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public static void Main(string[] args)
         {
-            Console.WriteLine($"Emby File Cleaner v{GetAssemblyVersion()}");
-            if (args.Length > 0 && GetConfigPath(args, out var configPath))
+            Logger.Info($"Emby File Cleaner v{GetAssemblyVersion()}");
+            if (GetConfigPath(args, out var configPath))
             {
                 var config = GetConfig(configPath);
                 var cleaner = new Cleaner(config);
                 cleaner.Run();
             }
 
+#if DEBUG
             Console.ReadKey();
+#endif
         }
 
         private static string GetAssemblyVersion()
@@ -32,7 +36,7 @@ namespace EmbyFileCleaner
 
         private static bool GetConfigPath(string[] args, out string configPath)
         {
-            string path = null;
+            string path = "./config.json";
             var p = new OptionSet
             {
                 {
@@ -47,14 +51,13 @@ namespace EmbyFileCleaner
 
             try
             {
-                var extra = p.Parse(args);
+                p.Parse(args);
                 configPath = path;
                 return true;
             }
             catch (OptionException e)
             {
-                Console.WriteLine(e.Message);
-                Console.WriteLine("Try `--help' option for more information.");
+                Logger.Info($"{e.Message}");
                 configPath = null;
                 return false;
             }

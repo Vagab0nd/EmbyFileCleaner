@@ -1,21 +1,24 @@
-﻿using Emby.ApiClient;
-using Emby.ApiClient.Cryptography;
-using Emby.ApiClient.Model;
-using EmbyFileCleaner.Model.Json;
-using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Querying;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace EmbyFileCleaner
+﻿namespace EmbyFileCleaner
 {
+    using Emby.ApiClient;
+    using Emby.ApiClient.Cryptography;
+    using Emby.ApiClient.Model;
+    using Model.Json;
+    using MediaBrowser.Model.Dto;
+    using MediaBrowser.Model.Entities;
+    using MediaBrowser.Model.Logging;
+    using MediaBrowser.Model.Querying;
+    using System;
+    using System.Linq;
+    using System.Reflection;
+    using System.Threading.Tasks;
+
     public class Cleaner
     {
         private readonly Config config;
         private readonly ApiClient apiClient;
+        private static readonly log4net.ILog Logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
 
         public Cleaner(Config config)
         {
@@ -25,15 +28,7 @@ namespace EmbyFileCleaner
 
         public void Run()
         {
-            var task = this.RunAsync();
-            try
-            {
-                task.Wait();
-            }
-            catch(Exception)
-            {
-                throw task.Exception;
-            }
+            this.RunAsync().GetAwaiter().GetResult();
         }
 
         private async Task RunAsync()
@@ -48,11 +43,11 @@ namespace EmbyFileCleaner
             {
                 if(this.config.IsTest)
                 {
-                    Console.WriteLine($"Picked - {this.GetItemNameFormattedByType(item)}");
+                    Logger.Info($"Picked - {this.GetItemNameFormattedByType(item)}");
                 }
                 else if(this.TryDelete(item))
                 {
-                    Console.WriteLine($"Deleted - {this.GetItemNameFormattedByType(item)}.");
+                    Logger.Info($"Deleted - {this.GetItemNameFormattedByType(item)}");
                 }
             }
         }
@@ -71,8 +66,7 @@ namespace EmbyFileCleaner
             }
             catch(Exception e)
             {
-                Console.WriteLine($"Could not delete {this.GetItemNameFormattedByType(item)}:");
-                Console.Write(e.Message);
+                Logger.Error($"Could not delete {this.GetItemNameFormattedByType(item)}: {e.Message}");
                 return false;
             }
         }
@@ -121,7 +115,7 @@ namespace EmbyFileCleaner
 
             if(ignored)
             {
-                Console.WriteLine($"Ignored - {this.GetItemNameFormattedByType(item)}.");
+                Logger.Info($"Ignored - {this.GetItemNameFormattedByType(item)}");
             }
 
             return ignored == false;
@@ -154,11 +148,11 @@ namespace EmbyFileCleaner
             return items.Items;
         }
 
-        private ApiClient GetApiClientInstance(Config config)
+        private ApiClient GetApiClientInstance(Config configLocal)
         {
             var logger = new NullLogger();
             var cryptoProvider = new CryptographyProvider();
-            var client = new ApiClient(logger, config.ConnectionInfo.Endpoint, config.ConnectionInfo.ApiKey, cryptoProvider);
+            var client = new ApiClient(logger, configLocal.ConnectionInfo.Endpoint, configLocal.ConnectionInfo.ApiKey, cryptoProvider);
             return client;
         }
     }
