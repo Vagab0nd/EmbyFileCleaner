@@ -63,10 +63,11 @@
 
         private void SaveSummary(int pickedCount, int deletedCount, int ingoredCount)
         {
-            Logger.Info($"==================={Environment.NewLine}" +
+            Logger.Info($"{Environment.NewLine}==================={Environment.NewLine}" +
                 $"Picked Count - {pickedCount}{Environment.NewLine}" +
                 $"Deleted Count - {deletedCount}{Environment.NewLine}" +
-                $"Ignored Count - {ingoredCount}");
+                $"Ignored Count - {ingoredCount}" +
+                $"{Environment.NewLine}===================");
         }
 
         private bool TryDelete(BaseItemDto item)
