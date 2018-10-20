@@ -34,12 +34,15 @@
         private async Task RunAsync()
         {
             var userId = await this.GetUserIdByUsername(this.config.ConnectionInfo.Username);
-
-            foreach(var item in (await this.GetItems(userId))
+            var playedItems = (await this.GetItems(userId))
                 .Where(item => {
                     var lastPlayedDate = item.UserData?.LastPlayedDate;
-                    return lastPlayedDate != null && lastPlayedDate < DateTime.Now.AddDays(-this.config.RemoveOlderThanDays) && this.IsNotIgnored(item);
-                }))
+                    return lastPlayedDate != null && lastPlayedDate < DateTime.Now.AddDays(-this.config.RemoveOlderThanDays);
+            });
+            var validItems = playedItems.Where(this.IsNotIgnored);
+            var deletedCount = this.config.IsTest ? 0 : validItems.Count();
+
+            foreach (var item in validItems)
             {
                 if(this.config.IsTest)
                 {
@@ -49,7 +52,21 @@
                 {
                     Logger.Info($"Deleted - {this.GetItemNameFormattedByType(item)}");
                 }
+                else
+                {
+                    deletedCount--;
+                }
             }
+
+            this.SaveSummary(validItems.Count(), deletedCount, playedItems.Count() - validItems.Count());
+        }
+
+        private void SaveSummary(int pickedCount, int deletedCount, int ingoredCount)
+        {
+            Logger.Info($"==================={Environment.NewLine}" +
+                $"Picked Count - {pickedCount}{Environment.NewLine}" +
+                $"Deleted Count - {deletedCount}{Environment.NewLine}" +
+                $"Ignored Count - {ingoredCount}");
         }
 
         private bool TryDelete(BaseItemDto item)
@@ -129,7 +146,16 @@
                 IsHidden = false
             });
 
-            return users.SingleOrDefault(u => u.Name.ToLower() == username.ToLower())?.Id;
+            var user = users.SingleOrDefault(u => u.Name.ToLower() == username.ToLower());
+
+            if(user == null)
+            {
+                var message = $"Could not find a user for name {username}";
+                Logger.Error(message);
+                throw new ArgumentException(message);
+            }
+
+            return user.Id;
         }
 
         private async Task<BaseItemDto[]> GetItems(string userId)
