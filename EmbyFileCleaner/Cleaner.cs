@@ -48,7 +48,7 @@
                 {
                     Logger.Info($"Picked - {this.GetItemNameFormattedByType(item)}");
                 }
-                else if(this.TryDelete(item))
+                else if(await this.TryDeleteAsync(item))
                 {
                     Logger.Info($"Deleted - {this.GetItemNameFormattedByType(item)}");
                 }
@@ -61,22 +61,23 @@
             this.SaveSummary(validItems.Count(), deletedCount, playedItems.Count() - validItems.Count());
         }
 
-        private void SaveSummary(int pickedCount, int deletedCount, int ingoredCount)
+        private void SaveSummary(int pickedCount, int deletedCount, int ignoredCount)
         {
             Logger.Info($"{Environment.NewLine}==================={Environment.NewLine}" +
                 $"Picked Count - {pickedCount}{Environment.NewLine}" +
                 $"Deleted Count - {deletedCount}{Environment.NewLine}" +
-                $"Ignored Count - {ingoredCount}" +
-                $"{Environment.NewLine}===================");
+                $"Ignored Count - {ignoredCount}{Environment.NewLine}" +
+                $"Failed Count - {pickedCount - deletedCount}{Environment.NewLine}" +
+                $"===================");
         }
 
-        private bool TryDelete(BaseItemDto item)
+        private async Task<bool> TryDeleteAsync(BaseItemDto item)
         {
             try
             {
                 if(item.CanDelete ?? true)
                 {
-                    this.apiClient.DeleteItemAsync(item.Id);
+                    await this.apiClient.DeleteItemAsync(item.Id);
                     return true;
                 }
 
@@ -84,7 +85,7 @@
             }
             catch(Exception e)
             {
-                Logger.Error($"Could not delete {this.GetItemNameFormattedByType(item)}: {e.Message}");
+                Logger.Error($"Could not delete {this.GetItemNameFormattedByType(item)}: {e.Message}", e);
                 return false;
             }
         }
@@ -148,7 +149,6 @@
             });
 
             var user = users.SingleOrDefault(u => u.Name.ToLower() == username.ToLower());
-
             if(user == null)
             {
                 var message = $"Could not find a user for name {username}";

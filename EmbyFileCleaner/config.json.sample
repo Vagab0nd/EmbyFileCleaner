@@ -1,7 +1,7 @@
 {
 	"ConnectionInfo": {
 		"ApiKey": "",
-		"Endpoint": "https://localhost:8920/emby",
+		"Endpoint": "https://localhost:8920",
 		"Username": "admin"
 	},
   "IgnoreListContains": [],
