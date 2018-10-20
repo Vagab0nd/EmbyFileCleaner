@@ -41,19 +41,18 @@ namespace EmbyFileCleaner
             var userId = await this.GetUserIdByUsername(this.config.ConnectionInfo.Username);
 
             foreach(var item in (await this.GetItems(userId))
-                .Where(item => item.UserData?.LastPlayedDate < DateTime.Now.AddDays(- this.config.RemoveOlderThanDays) &&
-                this.IsNotIgnored(item)))
+                .Where(item => {
+                    var lastPlayedDate = item.UserData?.LastPlayedDate;
+                    return lastPlayedDate != null && lastPlayedDate < DateTime.Now.AddDays(-this.config.RemoveOlderThanDays) && this.IsNotIgnored(item);
+                }))
             {
                 if(this.config.IsTest)
                 {
-                    Console.WriteLine(this.GetItemNameFormattedByType(item));
+                    Console.WriteLine($"Picked - {this.GetItemNameFormattedByType(item)}");
                 }
-                else
+                else if(this.TryDelete(item))
                 {
-                    if (this.TryDelete(item))
-                    {
-                        Console.WriteLine($"Successfully deleted {this.GetItemNameFormattedByType(item)}.");
-                    }
+                    Console.WriteLine($"Deleted - {this.GetItemNameFormattedByType(item)}.");
                 }
             }
         }
@@ -72,7 +71,7 @@ namespace EmbyFileCleaner
             }
             catch(Exception e)
             {
-                Console.WriteLine($"Could not delete {this.GetItemNameFormattedByType(item)}.");
+                Console.WriteLine($"Could not delete {this.GetItemNameFormattedByType(item)}:");
                 Console.Write(e.Message);
                 return false;
             }
@@ -116,9 +115,16 @@ namespace EmbyFileCleaner
 
         private bool IsNotIgnored(BaseItemDto item)
         {
-            var isIgnoredListContains = this.config.IgnoreListContains.Any(name => name.ToLower().Contains(this.GetItemNameByType(item).ToLower()));
-            var isIgnoredEquals = this.config.IgnoreListContains.Any(name => name == this.GetItemNameByType(item).ToLower());
-            return (isIgnoredListContains || isIgnoredEquals) == false;
+            var isIgnoredListContains = this.config.IgnoreListContains.Any(name => this.GetItemNameByType(item).ToLower().Contains(name.ToLower()));
+            var isIgnoredEquals = this.config.IgnoreListEquals.Any(name => this.GetItemNameByType(item).ToLower() == name.ToLower());
+            var ignored = isIgnoredListContains || isIgnoredEquals;
+
+            if(ignored)
+            {
+                Console.WriteLine($"Ignored - {this.GetItemNameFormattedByType(item)}.");
+            }
+
+            return ignored == false;
         }
 
         private async Task<string> GetUserIdByUsername(string username)

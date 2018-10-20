@@ -6,6 +6,9 @@ namespace EmbyFileCleaner.Model.Json
     {
         public ConnectionInfo ConnectionInfo { get; set; }
 
+        /// <summary>
+        /// Select, which emby item types should be included in cleaning. Suppoerted values: Episode, Movie.
+        /// </summary>
         public List<ItemType> IncludeItemTypes { get; set; }
 
         public int RemoveOlderThanDays { get; set; }

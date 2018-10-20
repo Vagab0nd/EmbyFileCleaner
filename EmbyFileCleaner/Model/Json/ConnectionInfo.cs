@@ -6,6 +6,9 @@
 
         public string Endpoint { get; set; }
 
+        /// <summary>
+        /// Username of account, for which cleaning will be performed
+        /// </summary>
         public string Username { get; set; }
     }
 }
