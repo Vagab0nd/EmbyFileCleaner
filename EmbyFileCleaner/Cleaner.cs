@@ -38,7 +38,8 @@
                 .Where(item => {
                     var lastPlayedDate = item.UserData?.LastPlayedDate;
                     return lastPlayedDate != null && lastPlayedDate < DateTime.Now.AddDays(-this.config.RemoveOlderThanDays);
-            });
+            })
+            .OrderBy(item => this.GetItemNameFormattedByType(item));
             var validItems = playedItems.Where(this.IsNotIgnored);
             var deletedCount = this.config.IsTest ? 0 : validItems.Count();
 
