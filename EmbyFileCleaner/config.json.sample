@@ -1,12 +1,15 @@
 {
 	"ConnectionInfo": {
-		"ApiKey": "",
 		"Endpoint": "https://localhost:8920",
-		"Username": "admin"
+		"Username": "admin",
+		"Password": "1234",
+	  //Username/Password authentication is preferred. Only user context generated api key will work in delete mode.
+		"ApiKey": ""
 	},
   "IgnoreListContains": [],
   "IgnoreListEquals":  [], 
 	"IncludeItemTypes": ["Episode"],
 	"IsTest": true,
-	"RemoveOlderThanDays": 7
+	"RemoveOlderThanDays": 7,
+	"PrintIgnored":  false
 }

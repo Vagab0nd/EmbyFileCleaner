@@ -27,5 +27,10 @@ namespace EmbyFileCleaner.Model.Json
         /// If true run in test mode without clearing anything
         /// </summary>
         public bool IsTest { get; set; }
+
+        /// <summary>
+        /// If true also ignored items will be logged
+        /// </summary>
+        public bool PrintIgnored { get; set; }
     }
 }

@@ -16,14 +16,14 @@
     public class Cleaner
     {
         private readonly Config config;
-        private readonly ApiClient apiClient;
+        private readonly IApiClient apiClient;
         private static readonly log4net.ILog Logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 
         public Cleaner(Config config)
         {
             this.config = config;
-            this.apiClient = this.GetApiClientInstance(this.config);
+            this.apiClient = this.GetApiClientInstanceAsync(this.config).GetAwaiter().GetResult();
         }
 
         public void Run()
@@ -58,16 +58,17 @@
                 }
             }
 
-            this.SaveSummary(validItems.Count(), deletedCount, playedItems.Count() - validItems.Count());
+            var pickedCount = playedItems.Count() - validItems.Count();
+            this.SaveSummary(validItems.Count(), deletedCount, pickedCount, this.config.IsTest ? 0 : (pickedCount - deletedCount));
         }
 
-        private void SaveSummary(int pickedCount, int deletedCount, int ignoredCount)
+        private void SaveSummary(int pickedCount, int deletedCount, int ignoredCount, int failedCount)
         {
             Logger.Info($"{Environment.NewLine}==================={Environment.NewLine}" +
                 $"Picked Count - {pickedCount}{Environment.NewLine}" +
                 $"Deleted Count - {deletedCount}{Environment.NewLine}" +
                 $"Ignored Count - {ignoredCount}{Environment.NewLine}" +
-                $"Failed Count - {pickedCount - deletedCount}{Environment.NewLine}" +
+                $"Failed Count - {failedCount}{Environment.NewLine}" +
                 $"===================");
         }
 
@@ -132,7 +133,7 @@
             var isIgnoredEquals = this.config.IgnoreListEquals.Any(name => this.GetItemNameByType(item).ToLower() == name.ToLower());
             var ignored = isIgnoredListContains || isIgnoredEquals;
 
-            if(ignored)
+            if(ignored && config.PrintIgnored)
             {
                 Logger.Info($"Ignored - {this.GetItemNameFormattedByType(item)}");
             }
@@ -175,11 +176,27 @@
             return items.Items;
         }
 
-        private ApiClient GetApiClientInstance(Config configLocal)
+        private async Task<IApiClient> GetApiClientInstanceAsync(Config configLocal)
         {
             var logger = new NullLogger();
             var cryptoProvider = new CryptographyProvider();
-            var client = new ApiClient(logger, configLocal.ConnectionInfo.Endpoint, configLocal.ConnectionInfo.ApiKey, cryptoProvider);
+
+            IApiClient client = null;
+
+            if (string.IsNullOrEmpty(configLocal.ConnectionInfo.ApiKey) == false)
+            {
+                Logger.Warn("If api key is granted manually (thru advanced -> security in admin panel), it will only work then in test mode. Use login/password or api key generated in user context to be able to delete items.");
+                client = new ApiClient(logger, configLocal.ConnectionInfo.Endpoint, configLocal.ConnectionInfo.ApiKey, cryptoProvider);
+            }
+            else
+            {
+                var device = new Device { DeviceId=string.Empty, DeviceName=string.Empty };
+                client = new ApiClient(logger, configLocal.ConnectionInfo.Endpoint, "EmbyFileCleaner", device, Program.GetAssemblyVersion(), cryptoProvider);
+                var passwordMd5 = ConnectService.GetConnectPasswordMd5(configLocal.ConnectionInfo.Password ?? string.Empty, cryptoProvider);
+                var authResult = await client.AuthenticateUserAsync(configLocal.ConnectionInfo.Username, passwordMd5);
+                client = new ApiClient(logger, configLocal.ConnectionInfo.Endpoint, authResult.AccessToken, cryptoProvider);
+            }
+
             return client;
         }
     }
