@@ -41,7 +41,8 @@
             })
             .OrderBy(item => this.GetItemNameFormattedByType(item));
             var validItems = playedItems.Where(this.IsNotIgnored);
-            var deletedCount = this.config.IsTest ? 0 : validItems.Count();
+            var pickedCount = playedItems.Count() - validItems.Count();
+            var deletedCount = this.config.IsTest ? 0 : pickedCount;
 
             foreach (var item in validItems)
             {
@@ -59,7 +60,6 @@
                 }
             }
 
-            var pickedCount = playedItems.Count() - validItems.Count();
             this.SaveSummary(validItems.Count(), deletedCount, pickedCount, this.config.IsTest ? 0 : (pickedCount - deletedCount));
         }
 
