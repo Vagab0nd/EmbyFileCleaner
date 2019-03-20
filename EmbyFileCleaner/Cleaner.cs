@@ -41,8 +41,9 @@
             })
             .OrderBy(item => this.GetItemNameFormattedByType(item));
             var validItems = playedItems.Where(this.IsNotIgnored);
-            var pickedCount = playedItems.Count() - validItems.Count();
-            var deletedCount = this.config.IsTest ? 0 : pickedCount;
+            var pickedCount = playedItems.Count();
+            var deletedCount = 0;
+            var failedCount = 0;
 
             foreach (var item in validItems)
             {
@@ -53,14 +54,15 @@
                 else if(await this.TryDeleteAsync(item))
                 {
                     Logger.Info($"Deleted - {this.GetItemNameFormattedByType(item)}");
+                    deletedCount++;
                 }
                 else
                 {
-                    deletedCount--;
+                    failedCount++;                                         
                 }
             }
 
-            this.SaveSummary(validItems.Count(), deletedCount, pickedCount, this.config.IsTest ? 0 : (pickedCount - deletedCount));
+            this.SaveSummary(pickedCount, deletedCount, pickedCount - validItems.Count(), failedCount);
         }
 
         private void SaveSummary(int pickedCount, int deletedCount, int ignoredCount, int failedCount)
