@@ -146,11 +146,7 @@
 
         private async Task<string> GetUserIdByUsername(string username)
         {
-            var users = await this.apiClient.GetUsersAsync(new UserQuery
-            {
-                IsDisabled = false,
-                IsHidden = false
-            });
+            var users = await this.apiClient.GetUsersAsync(new UserQuery());
 
             var user = users.SingleOrDefault(u => u.Name.ToLower() == username.ToLower());
             if(user == null)
